@@ -3,14 +3,13 @@ const fs = require("fs");
 
 const attrs = [{ name: "commonName", value: "localhost" }];
 
-selfsigned.generate(attrs, { days: 365 }, (err, pems) => {
-  if (err) {
-    console.error("Error generating cert:", err);
-    return;
-  }
-  console.log("pems object:", pems); // debug: see what we actually got back
-
+async function main() {
+  const pems = await selfsigned.generate(attrs, { days: 365 });
   fs.writeFileSync("key.pem", pems.private);
   fs.writeFileSync("cert.pem", pems.cert);
   console.log("Generated key.pem and cert.pem successfully");
+}
+
+main().catch((err) => {
+  console.error("Error generating cert:", err);
 });
