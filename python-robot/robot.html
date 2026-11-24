@@ -1,0 +1,30 @@
+<h3 id="status">Starting...</h3>
+<video id="preview" autoplay muted playsinline width="320"></video>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+  const status = document.getElementById("status");
+  const ws = new WebSocket("ws://localhost:8765");
+  ws.onopen = () => console.log("python server connected");
+  ws.onerror = () => (status.textContent = "Python server not reachable");
+
+  let stream = null;
+  navigator.mediaDevices
+    .getUserMedia({ video: true, audio: false })
+    .then((s) => {
+      stream = s;
+      document.getElementById("preview").srcObject = s;
+      status.textContent = "Camera OK. Waiting for operator...";
+    })
+    .catch((e) => (status.textContent = "Camera error: " + e.name));
+
+  const peer = new Peer("my-robot-1234"); // keep the same ID as operator.html
+  peer.on("open", (id) => console.log("peer ready:", id));
+  peer.on("error", (e) => (status.textContent = "Peer error: " + e.type));
+  peer.on("connection", (conn) => {
+    status.textContent = "Operator connected";
+    conn.on("data", (d) => ws.send(JSON.stringify(d)));
+    if (stream) peer.call(conn.peer, stream);
+  });
+</script>
+
+//plz make sure that audio is false in line 12, else might not work

@@ -1,0 +1,15 @@
+<video id="v" autoplay playsinline muted></video>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+  const peer = new Peer();
+  peer.on("open", () => {
+    const conn = peer.connect("my-robot-1234"); //connect witht he same id as robot.html
+    conn.on("open", () => {
+      setInterval(() => conn.send({ left: 50, right: 50, tilt: 90 }), 500);
+    });
+  });
+  peer.on("call", (call) => {
+    call.answer();
+    call.on("stream", (s) => (document.getElementById("v").srcObject = s));
+  });
+</script>
